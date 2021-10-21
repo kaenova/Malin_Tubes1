@@ -1,9 +1,3 @@
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import random
-import math
-
 class KMeans:
   training_arr = None
   point = None
@@ -31,9 +25,12 @@ class KMeans:
     # Setting up cluster arry for every record
     cluster = np.zeros(len(self.training_arr))
     
+    # normalize data
+    data = self.__normalize_data__(self.training_arr)
+    
     # Setting up random point ( only do this once )
     for i in range(len(point)):
-      point[i] = self.training_arr[random.randrange(0, len(self.training_arr))]
+      point[i] = data[random.randrange(0, len(data))]
         
     # Setup convergence and counter
     convergence = False
@@ -41,9 +38,9 @@ class KMeans:
         
     while not convergence and (step < max_step):
       initial_point = point
-      distance = self.__calculate_distance__(self.training_arr, point)
+      distance = self.__calculate_distance__(data, point)
       cluster = self.__clustering__(distance)
-      new_point = self.__point_nomralization__(point, cluster)
+      new_point = self.__point_nomralization__(data, point, cluster)
       convergence = self.__convergence_check__(initial_point, new_point, conv_threshold)
       
       if convergence:
@@ -54,28 +51,28 @@ class KMeans:
         print("STEP:", step)
       
     
-    self.point = point
-    self.inertia = self.__calculate_inertia__(self.training_arr, cluster, self.point)
+    self.inertia = self.__calculate_inertia__(data, cluster, point)
+    self.point = self.__denormalize_point__(point, self.training_arr)
     return cluster
   
-  def predict(self, x: np.array) -> (np.array, np.array):
-    '''
-      x: iterable
-      Fungsi ini digunakan untuk mempredict dari jenis data yang sama dan mengembalikan
-      nilai cluster pada setiap recordnya.
-    '''
-    # Check if the have the same column
-    if len(self.training_arr[0]) != len(x[0]):
-      raise "Bentuk tidak sama, harus berbentuk [" + str(len(self.training_arr[0])) + "]"  
-    if point == None:
-      raise "Point belum diinisialisasikan"
+#   def predict(self, x: np.array) -> (np.array, np.array):
+#     '''
+#       x: iterable
+#       Fungsi ini digunakan untuk mempredict dari jenis data yang sama dan mengembalikan
+#       nilai cluster pada setiap recordnya.
+#     '''
+#     # Check if the have the same column
+#     if len(self.training_arr[0]) != len(x[0]):
+#       raise "Bentuk tidak sama, harus berbentuk [" + str(len(self.training_arr[0])) + "]"  
+#     if point == None:
+#       raise "Point belum diinisialisasikan"
     
-    distance = self.__calculate_distance__(x, self.point)
-    cluster = self.__clustering__(distance)
+#     distance = self.__calculate_distance__(x, self.point)
+#     cluster = self.__clustering__(distance)
     
-    inertia = self.__calculate_inertia__(x, cluster, self.point)
+#     inertia = self.__calculate_inertia__(x, cluster, self.point)
     
-    return cluster, inertia
+#     return cluster, inertia
     
   # Made by Kaenova Mahendra Auditama | 1301190324 | IF-43-02
   def get_cluster_centroid(self) -> np.array:
@@ -111,14 +108,14 @@ class KMeans:
     
     return distance
   
-  def __point_nomralization__(self, point:np.array, cluster:np.array) -> (np.array, np.array):
+  def __point_nomralization__(self, data:np.array, point:np.array, cluster:np.array) -> (np.array, np.array):
     '''
     Fungsi ini digunakan untuk clustering dan normalisasi point
     '''
     new_point = np.zeros((len(point), len(point[0])))
     counter_array = np.zeros(len(point))
     for i in range(len(cluster)):
-      new_point[int(cluster[i])] = new_point[int(cluster[i])] + self.training_arr[i]
+      new_point[int(cluster[i])] = new_point[int(cluster[i])] + data[i]
       counter_array[int(cluster[i])] += 1
       
     unique_on_cluster = np.unique(cluster)
@@ -165,3 +162,31 @@ class KMeans:
       inertia += math.sqrt(np.linalg.norm(data[i] - points[int(cluster[i])]))
       
     return inertia
+  
+  def __normalize_data__(self, data:np.array) -> np.array:
+    '''
+    Fungsi ini digunakan untuk menormalisasikan data dengan menggunakan min-max scaling. Sehingga data berjenis dan bersatuan apapun data diproses dengan baik.
+    '''
+    data = data.copy()
+    for i in range(len(data[0])):
+      col_arr = data[:,i]
+      minmax = MinMaxScaler()
+      normalize = minmax.fit_transform(col_arr.reshape(-1,1)).reshape(1,-1)
+      data[:, i] = normalize[0]
+      
+    return data
+  
+  def __denormalize_point__(self, data:np.array, original_data:np.array) -> np.array:
+    '''
+    Fungsi ini digunakan untuk mendenormalisasikan point-point yang sudah dihitung menggunakan data yang ternormalisasi
+    '''
+    for i in range(len(data[0])):
+      col_arr = data[:,i]
+      col_arr_ori = original_data[:, i]
+      
+      minimums = min(col_arr_ori)
+      maximums = max(col_arr_ori)
+      for j in range(len(col_arr)):
+        col_arr[j] = ((col_arr[j]*(maximums - minimums)) + minimums)
+      data[:, i] = col_arr
+    return data
