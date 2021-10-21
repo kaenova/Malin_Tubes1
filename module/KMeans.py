@@ -20,17 +20,14 @@ class KMeans:
     Membuat model KMeans dengan K tertentu. Akan mengkembalikan hasil prediksi cluster.
     Poin kluster akan disimpan pada variable point
     '''
-    point = np.zeros((k_num, len(self.training_arr[0])))
-    
     # Setting up cluster arry for every record
     cluster = np.zeros(len(self.training_arr))
     
     # normalize data
     data = self.__normalize_data__(self.training_arr)
     
-    # Setting up random point ( only do this once )
-    for i in range(len(point)):
-      point[i] = data[random.randrange(0, len(data))]
+    # Initialize centroids using kmeans++
+    point = self.__initialize_centroids__(data, k_num)
         
     # Setup convergence and counter
     convergence = False
@@ -64,6 +61,31 @@ class KMeans:
       print("Nothing returned, point not initialize. Try using fit_predict first.")
       return
     return self.point
+  
+  
+  def __initialize_centroids__(self, data:np.array, k:np.array) -> np.array:
+    '''
+    Fungsi ini digunakan untuk menginisialisasikan centroid. Menggunakan algoritma k-means++
+    referensi membantu: https://www.youtube.com/watch?v=HatwtJSsj5Q
+    '''
+    centroids = []
+    centroids.append( data[random.randrange(0, len(data))] )
+    
+    for i in range(1, k):
+      min_dist = []
+      for data_point in data:
+        distance_data_point = []
+        for point in centroids:
+          distance_data_point.append(np.linalg.norm(data_point - point))
+        min_dist.append(min(distance_data_point))
+      
+      probcum  = sum(min_dist)
+      prob_point = [value / probcum for value in min_dist]
+      
+      centroids.append(data[np.argmax(prob_point)])
+    
+    return np.array(centroids)
+  
   
   def __clustering__(self, distance: np.array) -> np.array:
     '''
