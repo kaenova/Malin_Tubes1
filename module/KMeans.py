@@ -54,25 +54,6 @@ class KMeans:
     self.inertia = self.__calculate_inertia__(data, cluster, point)
     self.point = self.__denormalize_point__(point, self.training_arr)
     return cluster
-  
-#   def predict(self, x: np.array) -> (np.array, np.array):
-#     '''
-#       x: iterable
-#       Fungsi ini digunakan untuk mempredict dari jenis data yang sama dan mengembalikan
-#       nilai cluster pada setiap recordnya.
-#     '''
-#     # Check if the have the same column
-#     if len(self.training_arr[0]) != len(x[0]):
-#       raise "Bentuk tidak sama, harus berbentuk [" + str(len(self.training_arr[0])) + "]"  
-#     if point == None:
-#       raise "Point belum diinisialisasikan"
-    
-#     distance = self.__calculate_distance__(x, self.point)
-#     cluster = self.__clustering__(distance)
-    
-#     inertia = self.__calculate_inertia__(x, cluster, self.point)
-    
-#     return cluster, inertia
     
   # Made by Kaenova Mahendra Auditama | 1301190324 | IF-43-02
   def get_cluster_centroid(self) -> np.array:
